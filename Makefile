@@ -1,10 +1,16 @@
-U_BOOT_DIR  = /home/alex/Documents/Programming/EmbeddedLinux/u-boot
-KERNEL_DIR  = /home/alex/Documents/Programming/EmbeddedLinux/linux
-BUSYBOX_DIR = /home/alex/Documents/Programming/EmbeddedLinux/busybox
+U_BOOT_DIR  = ../u-boot
+KERNEL_DIR  = ../linux
+BUSYBOX_DIR = ../busybox
 TFTP_DIR    = $(CURDIR)/tftp_dir
 ROOTFS_DIR  = $(CURDIR)/rootfs
 
-.PHONY: build-uboot build-kernel build-busybox build-rootfs run-kernel clean
+.PHONY: build-uboot build-kernel build-busybox build-rootfs run-kernel clean get-source
+
+
+get-source:
+	git clone  https://github.com/u-boot/u-boot.git ../u-boot
+	git clone https://github.com/torvalds/linux.git ../linux
+	git clone https://github.com/mirror/busybox.git ../busybox
 
 build-uboot:
 	cd $(U_BOOT_DIR) && \
