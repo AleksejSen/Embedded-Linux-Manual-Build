@@ -1,1 +1,4 @@
 rootfs/
+u-boot.bin
+Image
+tftp_dir/
