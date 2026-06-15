@@ -4,10 +4,8 @@ BUSYBOX_DIR = ../busybox
 TFTP_DIR    = $(CURDIR)/tftp_dir
 ROOTFS_DIR  = $(CURDIR)/rootfs
 
-# FIXED: Synchronized to get-sources everywhere
 .PHONY: build-uboot build-kernel build-busybox build-rootfs run-linux clean get-sources all
 
-# FIXED: Changed get-source to get-sources
 all: get-sources build-uboot build-kernel build-rootfs
 
 get-sources:
