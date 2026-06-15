@@ -4,15 +4,34 @@ BUSYBOX_DIR = ../busybox
 TFTP_DIR    = $(CURDIR)/tftp_dir
 ROOTFS_DIR  = $(CURDIR)/rootfs
 
-.PHONY: build-uboot build-kernel build-busybox build-rootfs run-kernel clean get-source
+# FIXED: Synchronized to get-sources everywhere
+.PHONY: build-uboot build-kernel build-busybox build-rootfs run-linux clean get-sources all
 
+# FIXED: Changed get-source to get-sources
+all: get-sources build-uboot build-kernel build-rootfs
 
-get-source:
-	git clone  https://github.com/u-boot/u-boot.git ../u-boot
-	git clone https://github.com/torvalds/linux.git ../linux
-	git clone https://github.com/mirror/busybox.git ../busybox
+get-sources:
+	@echo "=== Getting U-Boot Source Code ===="
+	@if [ ! -d "../u-boot" ]; then \
+		git clone --depth 1 https://github.com/u-boot/u-boot.git ../u-boot; \
+	else \
+		echo "U-Boot folder already exists, skipping..."; \
+	fi
+	@echo "=== Getting Linux Kernel Source Code ===="
+	@if [ ! -d "../linux" ]; then \
+		git clone --depth 1 https://github.com/torvalds/linux.git ../linux; \
+	else \
+		echo "Linux folder already exists, skipping..."; \
+	fi
+	@echo "=== Getting BusyBox Source Code ===="
+	@if [ ! -d "../busybox" ]; then \
+		git clone --depth 1 https://github.com/mirror/busybox.git ../busybox; \
+	else \
+		echo "BusyBox folder already exists, skipping..."; \
+	fi
 
 build-uboot:
+	@echo "=== Building U-Boot START ===="
 	cd $(U_BOOT_DIR) && \
 	export ARCH=arm64 && \
 	export CROSS_COMPILE=aarch64-linux-gnu- && \
@@ -21,16 +40,20 @@ build-uboot:
 	make olddefconfig && \
 	make -j4 && \
 	cp u-boot.bin $(CURDIR)/
+	@echo "=== Building U-Boot DONE ===="
 
 build-kernel:
+	@echo "=== Building Kernel START ===="
 	cd $(KERNEL_DIR) && \
 	export ARCH=arm64 && \
 	export CROSS_COMPILE=aarch64-linux-gnu- && \
 	make defconfig && \
 	make -j4 Image && \
 	cp arch/arm64/boot/Image $(CURDIR)/
+	@echo "=== Building Kernel DONE ===="
 
 build-busybox:
+	@echo "=== Building BusyBox START ===="
 	cd $(BUSYBOX_DIR) && \
 	export ARCH=arm64 && \
 	export CROSS_COMPILE=aarch64-linux-gnu- && \
@@ -43,8 +66,10 @@ build-busybox:
 	yes "" | make -j4 install && \
 	rm -rf $(ROOTFS_DIR) && \
 	cp -r _install $(ROOTFS_DIR)
+	@echo "=== Building BusyBox DONE ===="
 
 build-rootfs: build-busybox
+	@echo "=== Building rootfs START ===="
 	mkdir -p $(ROOTFS_DIR)/dev $(ROOTFS_DIR)/proc $(ROOTFS_DIR)/sys $(ROOTFS_DIR)/etc/init.d
 	@echo '#!/bin/sh' > $(ROOTFS_DIR)/init
 	@echo 'mount -t proc none /proc' >> $(ROOTFS_DIR)/init
@@ -60,6 +85,7 @@ build-rootfs: build-busybox
 	# Step 2: Wrap that raw archive with the mandatory U-Boot header structure
 	$(U_BOOT_DIR)/tools/mkimage -A arm64 -O linux -T ramdisk -C gzip -d $(CURDIR)/initramfs.cpio.gz.raw $(CURDIR)/initramfs.cpio.gz
 	@rm -f $(CURDIR)/initramfs.cpio.gz.raw
+	@echo "=== Building rootfs DONE ===="
 
 run-linux:
 	@mkdir -p $(TFTP_DIR)
